@@ -1,29 +1,20 @@
 import random
-N= int(input())
-K= int(input())
-a=[]
+N= int(input('N='))
+K= int(input('K='))
+A=[]
     # инициализация матрицы а
-file = open('laba1.txt', 'r')
-for i in range(N):
-    st = file.readline()
-    a.append([int(x) for x in st.split()])
-print("A")
-for i in a:
+
+A = [[0]*N for _ in range(N)]
+for i in A:
     print(i)
-a= [[random.randint(-10,10) for i in range(N)] for j in range(N)]
-for i in a:
-    print(i)
-f= []
-import random
 
 # Выбор типа создания матрицы A
 choice = int(input("Выберите способ создания матрицы A (1 - из файла, 2 - случайные числа): "))
-n = int(input("Введите размерность матрицы (n): "))
-A = []
+
 
 if choice == 1:
     with open('laba1.txt', 'r') as file:
-        for i in range(n):
+        for i in range(N):
             st = file.readline()
             A.append([int(x) for x in st.split()])
 
@@ -32,7 +23,7 @@ if choice == 1:
         print(row)
 
 elif choice == 2:
-    A = [[random.randint(-10, 10) for _ in range(n)] for _ in range(n)]
+    A = [[random.randint(-10, 10) for _ in range(N)] for _ in range(N)]
     print("Матрица A:")
     for row in A:
         print(row)
@@ -42,9 +33,9 @@ else:
 
 # Формируем матрицу F
 print("\nМатрица F:")
-F = [[0] * n for _ in range(n)]
-for i in range(n):      # Копируем A в F
-    for j in range(n):
+F = [[0] * N for _ in range(N)]
+for i in range(N):      # Копируем A в F
+    for j in range(N):
         F[i][j] = A[i][j]
 
 print("Матрица F после копирования:")
@@ -52,101 +43,90 @@ for row in F:
     print(row)
 
 size = len(F)
+max1 = 0
+min1 = 11
 min_count_area2 = 0
 max_count_area1 = 0
 d = []
 k = []
 
-# Подсчет минимальных и максимальных значений
-for i in range(n):
-    for j in range(n):
-        if j % 2 != 0:  # Нечетные столбцы (область 2)
-            if i > j and i + j > size - 1:
-                if F[i][j] == 0:
-                    min_count_area2 += 1
-        elif j % 2 == 0:  # Четные столбцы (область 1)
-            if i > j and i + j < size - 1:
-                max_count_area1 += F[i][j]
-
-# Логика обмена областей
-t = 0
-y = 0
+# Подсчет максимальных значений в первой области
+for i in range (N//2):
+    for j in range(i):
+        if i % 2==0:
+            max1 = A[i][j]
+            if A[i][j]> max1:
+                max1 = A[i][j]
+                max_count_area1=1
+            elif max1==A[i][j]:
+                max_count_area1+=1
+for i in range(N//2,N):
+    for j in range(N-(i+1)):
+        if i % 2==0:
+            max1 = A[i][j]
+            if A[i][j]> max1:
+                max1 = A[i][j]
+                max_count_area1=1
+            elif max1==A[i][j]:
+                max_count_area1+=1
+#подсчет минимальных значений второй области
+for i in range(N//2):
+    for j in range(i+1,N//2):
+        if j % 2!=0:
+            min1 = A[i][j]
+            if A[i][j]< min1:
+                min1 = A[i][j]
+                min_count_area2=1
+            elif min1==A[i][j]:
+                min_count_area2+=1
+for i in range(N//2):
+    for j in range(N//2,N-(i+1)):
+        if j % 2!=0:
+            min1 = A[i][j]
+            if A[i][j]< min1:
+                min1 = A[i][j]
+                min_count_area2=1
+            elif min1==A[i][j]:
+                min_count_area2+=1
 
 if min_count_area2 > max_count_area1:
-    # Обмен областей 1 и 2
-    for i in range(n):
-        for j in range(n):
-            if i < j and i + j < size - 1:
-                d.append(F[i][j])
-    for j in range(n):
-        for i in range(n - 1, -1, -1):
-            if i > j and i + j < size - 1:
-                k.append(F[i][j])
-    for i in range(n):
-        for j in range(n):
-            if i < j and i + j < size - 1:
-                F[i][j] = k[t]
-                t += 1
-    for j in range(n):
-        for i in range(n - 1, -1, -1):
-            if i > j and i + j < size - 1:
-                F[i][j] = d[y]
-                y += 1
+    for i in range(N // 2):
+        for j in range(i + 1, N // 2):
+            F[i][j],F[j][i]=F[j][i],F[i][j]
+    for i in range(N // 2):
+        for j in range(N // 2, N - (i + 1)):
+            F[i][j], F[j][i] = F[j][i], F[i][j]
     print("\nМатрица F после обмена (min_count_area2 > max_count_area1):")
     for row in F:
         print(row)
 
 else:
-    # Обмен областей 2 и 3
-    for i in range(n):
-        for j in range(n):
-            if i < j and i + j < size - 1:
-                d.append(F[i][j])
-    for j in range(n - 1, -1, -1):
-        for i in range(n):
-            if i < j and i + j > size - 1:
-                k.append(F[i][j])
-    for i in range(n):
-        for j in range(n - 1, -1, -1):
-            if i < j and i + j < size - 1:
-                F[i][j] = k[t]
-                t += 1
-    for j in range(n - 1, -1, -1):
-        for i in range(n - 1, -1, -1):
-            if i < j and i + j > size - 1:
-                F[i][j] = d[y]
-                y += 1
-
+    for i in range(N // 2):
+        for j in range(i + 1, N // 2):
+            F[i][j], F[j][N-i-1] = F[j][N-i-1], F[i][j]
+    for i in range(N // 2):
+        for j in range(N // 2, N - (i + 1)):
+            F[i][j], F[j][N - i - 1] = F[j][N - i - 1], F[i][j]
     print("\nМатрица F после обмена (min_count_area2 <= max_count_area1):")
     for row in F:
         print(row)
 
 # Умножение A на F
-C = [[0] * n for i in range(n)]
-for i in range(n):  # A * F
-    for j in range(n):
-        s = 0
-        for p in range(n):
-            s += A[i][p] * F[p][j]
-        C[i][j] = s
+AF = [[0] * N for i in range(N)]
+for i in range(N):  # A * F
+    for j in range(N):
+        for p in range(N):
+            AF[i][j] += A[i][p] * F[p][j]
+
 
 print("\nРезультат A * F:")
-for row in C:
-    print(row)
-
-K = 2  # Значение K, которое можно настроить
-for i in range(n):  # K * C
-    for j in range(n):
-        C[i][j] *= K
-
-print("\nРезультат K * C:")
-for row in C:
+for row in AF:
     print(row)
 
 # Транспонирование A
-AT = [[0] * n for i in range(n)]
-for i in range(n):
-    for j in range(n):
+AT = [[0] * N for i in range(N)]
+for i in range(N):
+    for j in range(N):
         AT[i][j] = A[j][i]
 
 print("\nТранспонированная матрица A (AT):")
@@ -154,21 +134,21 @@ for row in AT:
     print(row)
 
 # Умножение AT на K
-ATK = [[0] * n for i in range(n)]
-for i in range(n):  # AT * K
-    for j in range(n):
+ATK = [[0] * N for i in range(N)]
+for i in range(N):  # AT * K
+    for j in range(N):
         ATK[i][j] = AT[i][j] * K
 
 print("\nРезультат AT * K:")
 for row in ATK:
     print(row)
 
-# Вычитание C - AT*K
-M = [[0] * n for i in range(n)]
-for i in range(n):  # C - ATK
-    for j in range(n):
-        M[i][j] = C[i][j] - ATK[i][j]
+# Сложение AF + AT*K
+M = [[0] * N for i in range(N)]
+for i in range(N):  # AF + ATK
+    for j in range(N):
+        M[i][j] = AF[i][j] + ATK[i][j]
 
-print("\nРезультат C - AT*K:")
+print("\nРезультат AF + AT*K:")
 for row in M:
     print(row)
