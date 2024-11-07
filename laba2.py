@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 # Функция для заполнения матрицы из файла
 def fill_matrix_from_file(filename, N):
-    with open(filename, 'r') as f:
+    with open(laba1.txt, 'r') as f:
         matrix = []
         for line in f:
             matrix.append(list(map(int, line.split())))
