@@ -1,116 +1,124 @@
-import numpy as np
-import matplotlib.pyplot as plt
+#Формируется матрица F следующим образом: скопировать в нее А и если в В
+#количество строк, состоящих из одних нулей в четных столбцах, чем сумма
+#положительных  элементов в четных строках, то поменять местами Е и С симметрично,
+#иначе В и Е поменять местами несимметрично. При этом матрица А не меняется.
+#После чего если определитель матрицы А больше суммы диагональных элементов
+#матрицы F, то вычисляется выражение: A-1*AT – K * F-1, иначе вычисляется выражение
+#(AТ +G-FТ)*K, где G-нижняя треугольная матрица, полученная из А. Выводятся по
+#мере формирования А, F и все матричные операции последовательно
 
 
-# Функция для заполнения матрицы из файла
-def fill_matrix_from_file(filename, N):
-    with open(laba1.txt, 'r') as f:
-        matrix = []
-        for line in f:
-            matrix.append(list(map(int, line.split())))
-    return np.array(matrix)
+import numpy as np  # Для работы с матрицами
+import matplotlib.pyplot as plt  # Для построения графиков
+
+# Ввод чисел K и N
+K = int(input("Введите значение K (целое число): "))
+N = int(input("Введите размер матрицы N (четное число): "))
+
+half = N // 2
+
+# Создаем пустую матрицу A и заполняем подматрицы
+A = np.zeros((N, N), dtype=int)  # Матрица A изначально заполнена нулями
+B = np.full((half, half), 1)  # Подматрица B заполнена единицами
+C = np.full((half, half), 2)  # Подматрица C заполнена двойками
+D = np.full((half, half), 3)  # Подматрица D заполнена тройками
+E = np.full((half, half), 4)  # Подматрица E заполнена четверками
+
+# Вставляем подматрицы в A
+A[:half, :half] = B  # Верхний левый угол — B
+A[half:, :half] = C  # Нижний левый угол — C
+A[half:, half:] = D  # Нижний правый угол — D
+A[:half, half:] = E  # Верхний правый угол — E
+
+# Показываем матрицу A
+print("\nМатрица A:")
+print(A)
+
+# Создаем матрицу F как копию A
+F = A.copy()
+
+zero_rows = 0
+for row in B:
+    if all(row[::2] == 0):
+        zero_rows += 1
 
 
-# Функция для генерации матрицы
-def generate_matrix(N, random_fill=True, filename=None):
-    if random_fill:
-        return np.random.randint(-10, 11, (N, N))
-    else:
-        return fill_matrix_from_file(filename, N)
+positive_sum = 0
+for i in range(0, half, 2):
+    for elem in B[i]:
+        if elem > 0:
+            positive_sum += elem
+
+# Условие для перестановки подматриц
+if zero_rows > positive_sum:
+    # Симметрично меняем местами E и C
+    F[half:, :half], F[:half, half:] = E, C
+else:
+    # Несимметрично меняем местами B и E
+    F[:half, :half], F[:half, half:] = E, B
+
+# Показываем матрицу F
+print("\nМатрица F после перестановок:")
+print(F)
 
 
-# Функция для симметричной замены элементов матриц
-def swap_symmetric(A, B):
-    A[:], B[:] = B[::-1, ::-1], A[::-1, ::-1]
+diag_sum_F = sum(F[i][i] for i in range(N))
+
+# Считаем определитель матрицы A вручную
+if N == 2:
+    det_A = A[0, 0] * A[1, 1] - A[0, 1] * A[1, 0]
+else:
+    det_A = round(np.linalg.det(A))
 
 
-# Функция для несимметричной замены элементов матриц
-def swap_non_symmetric(A, B):
-    A[:], B[:] = B, A
+print(f"\nОпределитель матрицы A: {det_A}")
+print(f"Сумма диагональных элементов матрицы F: {diag_sum_F}")
 
 
-# Функция для создания матрицы F на основе A
-def create_F(A, K):
-    N = A.shape[0]
-    half_N = N // 2
+if det_A > diag_sum_F:
 
-    B = A[:half_N, :half_N]
-    C = A[:half_N, half_N:]
-    D = A[half_N:, :half_N]
-    E = A[half_N:, half_N:]
+    A_T = A.T
+    F_T = F.T
+    result = A_T - K * F_T
+else:
+    # Выражение: (AТ + G - FТ) * K
+    G = np.zeros_like(A)
+    for i in range(N):
+        for j in range(i + 1):
+            G[i, j] = A[i, j]
+    A_T = A.T
+    F_T = F.T
+    result = (A_T + G - F_T) * K
 
-    # Подсчет строк, состоящих из одних нулей в четных столбцах в B
-    zero_rows_in_B = sum(np.all(B[:, 1::2] == 0, axis=1))
-    # Сумма положительных элементов в четных строках B
-    positive_sum_in_even_rows = sum(np.sum(B[1::2] > 0))
+# Показываем результат
+print("\nРезультат вычислений:")
+print(result)
 
-    F = np.copy(A)
+# Построение графиков
+plt.figure(figsize=(12, 4))
 
-    # Замена подматриц в зависимости от условий
-    if zero_rows_in_B > positive_sum_in_even_rows:
-        swap_symmetric(E, C)
-    else:
-        swap_non_symmetric(B, E)
+# График 1: Тепловая карта матрицы F
+plt.subplot(1, 3, 1)
+plt.imshow(F, cmap='coolwarm', interpolation='nearest')
+plt.title("Тепловая карта матрицы F")
+plt.colorbar()
 
-    return F
+# График 2: Первая строка матрицы F
+plt.subplot(1, 3, 2)
+plt.plot(F[0], marker='o', label='Первая строка F')
+plt.title("Первая строка матрицы F")
+plt.xlabel("Индекс")
+plt.ylabel("Значение")
+plt.legend()
 
+# График 3: Гистограмма значений F
+plt.subplot(1, 3, 3)
+plt.hist(F.flatten(), bins=8, color='orange', edgecolor='black')
+plt.title("Гистограмма значений F")
+plt.xlabel("Значение")
+plt.ylabel("Частота")
 
-# Функция для вычисления итоговых матриц
-def calculate_matrices(A, F, K):
-    det_A = np.linalg.det(A)  # Определитель матрицы A
-    diag_sum_F = np.trace(F)  # Сумма диагональных элементов матрицы F
+# Показать графики
+plt.tight_layout()
+plt.show()
 
-    # Выбор выражения для вычисления в зависимости от условия
-    if det_A > diag_sum_F:
-        A_inv = np.linalg.inv(A)  # Обратная матрица A
-        AT = A.T  # Транспонированная матрица A
-        F_inv = np.linalg.inv(F)  # Обратная матрица F
-        result = A_inv @ AT - K * F_inv
-    else:
-        AT = A.T
-        G = np.tril(A)  # Нижняя треугольная матрица G из A
-        FT = F.T  # Транспонированная матрица F
-        result = (AT + G - FT) * K
-
-    return result
-
-
-# Функция для построения графиков матриц
-def plot_matrices(A, F, result):
-    fig, axs = plt.subplots(1, 3, figsize=(15, 5))
-
-    axs[0].imshow(A, cmap='viridis')
-    axs[0].set_title('Матрица A')
-
-    axs[1].imshow(F, cmap='viridis')
-    axs[1].set_title('Матрица F')
-
-    axs[2].imshow(result, cmap='viridis')
-    axs[2].set_title('Итоговая матрица')
-
-    plt.show()
-
-
-# Главная функция
-def main():
-    K = int(input("Введите K: "))
-    N = int(input("Введите N: "))
-
-    # Измените на False и укажите имя файла для нерегулярного заполнения
-    random_fill = True
-    filename = "matrix.txt"
-
-    A = generate_matrix(N, random_fill=random_fill, filename=filename)
-    print("Матрица A:\n", A)
-
-    F = create_F(A, K)
-    print("Матрица F:\n", F)
-
-    result = calculate_matrices(A, F, K)
-    print("Итоговая матрица:\n", result)
-
-    plot_matrices(A, F, result)
-
-
-if __name__ == "__main__":
-    main()
