@@ -44,9 +44,8 @@ def func(n):
 def target(n):
     msumm = 0
     chislo = 0
-    a = [str(ch) for ch in range(1, n)]
     matches = []
-    for number in a:
+    for number in [str(ch) for ch in range(1, n)]:
         tsumm = 0
         for el in number:
             tsumm += int(el)
